@@ -99,7 +99,7 @@ function M.add_highlight_from_visual()
   -- Get the current visual selection while still in visual mode
   local mode = vim.fn.mode()
 
-  if mode ~= 'v' and mode ~= 'V' and mode ~= '' then
+  if mode ~= 'v' and mode ~= 'V' and mode ~= '\22' then
     vim.notify('Must be called from visual mode', vim.log.levels.WARN)
     return
   end
@@ -126,7 +126,7 @@ function M.add_highlight_from_visual()
     -- V-line mode: highlight entire lines
     start_col = 0
     end_col = -1 -- -1 means end of line
-  elseif mode == '' then
+  elseif mode == '\22' then
     -- Visual block mode: use column positions
     start_col = math.min(start_pos[3] - 1, end_pos[3] - 1)
     end_col = math.max(start_pos[3], end_pos[3])
@@ -222,7 +222,7 @@ end
 -- Keep the old function for backward compatibility
 function M.toggle_highlight()
   local mode = vim.fn.mode()
-  if mode == 'v' or mode == 'V' or mode == '' then
+  if mode == 'v' or mode == 'V' or mode == '\22' then
     M.add_highlight_from_visual()
   else
     M.remove_highlight_at_cursor()
