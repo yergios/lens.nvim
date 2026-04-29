@@ -34,6 +34,8 @@ Lens.nvim lets you pin highlights to any visual selection so you can track impor
 
 Attempting to pin the same selection twice is a no-op.
 
+> **Block mode note:** `<C-v>` selections highlight each line from column 0 to the full visual width of the window, ignoring the block's column bounds. Use `v` for column-precise ranges.
+
 ## Configuration
 
 Pass options to `setup()`. All fields are optional.

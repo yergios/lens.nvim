@@ -135,13 +135,57 @@ describe("lens.nvim", function()
   end)
 
   -- ───────────────────────────────────────────────
-  -- Visual block mode (^V)
+  -- Visual block mode (^V) — always full-line
   -- ───────────────────────────────────────────────
   describe("visual block mode (^V)", function()
     it("adds one extmark per line in the block", function()
-      -- ^V across lines 1–3, cols 1–5
       mock_visual_add("\22", { 0, 1, 1, 0 }, { 0, 3, 5, 0 })
       assert.equals(3, #get_marks())
+    end)
+
+    it("each extmark starts at column 0 regardless of block columns", function()
+      mock_visual_add("\22", { 0, 1, 3, 0 }, { 0, 3, 7, 0 })
+      local marks = get_marks()
+      for _, m in ipairs(marks) do
+        assert.equals(0, m[3])
+      end
+    end)
+
+    it("each extmark extends to the end of its line and fills the visual width", function()
+      mock_visual_add("\22", { 0, 1, 2, 0 }, { 0, 3, 5, 0 })
+      local marks = get_marks()
+      -- The EOL sentinel stores end_col=0 on the next line; hl_eol fills past text.
+      for _, m in ipairs(marks) do
+        local details = m[4]
+        assert.equals(m[2] + 1, details.end_row) -- next line
+        assert.equals(0, details.end_col)
+        assert.is_true(details.hl_eol)
+      end
+    end)
+
+    it("narrow and wide block on the same lines produce identical extmarks", function()
+      mock_visual_add("\22", { 0, 2, 1, 0 }, { 0, 3, 2, 0 }) -- narrow: cols 1-2
+      local narrow = get_marks()
+      lens.clear_all()
+      mock_visual_add("\22", { 0, 2, 1, 0 }, { 0, 3, 11, 0 }) -- wide: cols 1-11
+      local wide = get_marks()
+
+      assert.equals(#narrow, #wide)
+      for i = 1, #narrow do
+        assert.equals(narrow[i][2], wide[i][2])           -- same start line
+        assert.equals(narrow[i][3], wide[i][3])           -- same start col (0)
+        assert.equals(narrow[i][4].end_row, wide[i][4].end_row)
+        assert.equals(narrow[i][4].end_col, wide[i][4].end_col)
+      end
+    end)
+
+    it("single-line block highlights the full line", function()
+      mock_visual_add("\22", { 0, 2, 3, 0 }, { 0, 2, 7, 0 })
+      local marks = get_marks()
+      assert.equals(1, #marks)
+      assert.equals(0, marks[1][3])              -- start col 0
+      assert.equals(marks[1][2] + 1, marks[1][4].end_row)
+      assert.equals(0, marks[1][4].end_col)
     end)
   end)
 

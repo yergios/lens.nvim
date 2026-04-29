@@ -19,6 +19,8 @@ important lines and symbols while reading code. Highlights persist across
 cursor moves and survive mode changes until you explicitly remove them.
 
 Supported selection types: charwise (`v`), linewise (`V`), block (`<C-v>`).
+Block selections (`<C-v>`) highlight each line from column 0 to the full visual
+width of the window, ignoring the block's column bounds.
 
 ===============================================================================
 2. Installation                                        *lens.nvim-installation*

@@ -56,8 +56,8 @@ function M.add_highlight_from_visual()
     start_col = 0
     end_col = -1
   elseif mode == VISUAL_BLOCK then
-    start_col = math.min(start_pos[3] - 1, end_pos[3] - 1)
-    end_col = math.max(start_pos[3], end_pos[3])
+    start_col = 0
+    end_col = -1
   else
     start_col = start_pos[3] - 1
     end_col = end_pos[3]
@@ -115,9 +115,11 @@ function M.add_highlight(bufnr, start_line, start_col, end_line, end_col, key)
   local function add(line, sc, ec)
     local opts = { hl_group = config.highlight_group }
     if ec == -1 then
-      -- Highlight to end of line: range [line, sc] → [line+1, 0]
+      -- Highlight to end of line: range [line, sc] → [line+1, 0].
+      -- hl_eol fills the visual line to the window edge past the last character.
       opts.end_line = line + 1
       opts.end_col = 0
+      opts.hl_eol = true
     else
       opts.end_line = line
       opts.end_col = ec
