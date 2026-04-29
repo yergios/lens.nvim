@@ -1,0 +1,112 @@
+*lens.txt*                                                       lens.nvim docs
+*Lens* *lens* *lens.nvim*
+
+===============================================================================
+Table of Contents                                          *lens.nvim-contents*
+
+1. Introduction                                        |lens.nvim-introduction|
+2. Installation                                        |lens.nvim-installation|
+3. Usage                                                      |lens.nvim-usage|
+4. Configuration                                      |lens.nvim-configuration|
+5. Keymaps                                                  |lens.nvim-keymaps|
+6. API                                                          |lens.nvim-api|
+
+===============================================================================
+1. Introduction                                        *lens.nvim-introduction*
+
+Lens.nvim lets you pin highlights to any visual selection so you can track
+important lines and symbols while reading code. Highlights persist across
+cursor moves and survive mode changes until you explicitly remove them.
+
+Supported selection types: charwise (`v`), linewise (`V`), block (`<C-v>`).
+
+===============================================================================
+2. Installation                                        *lens.nvim-installation*
+
+LAZY.NVIM ~
+>lua
+  {
+    'yergios/lens.nvim',
+    event = 'VeryLazy',
+    config = function()
+      require('lens').setup()
+    end,
+  }
+<
+
+LAZYVIM — use the built-in keymap spec to skip manual keymap setup: ~
+>lua
+  {
+    'yergios/lens.nvim',
+    keys = require('lens').keys,
+  }
+<
+
+===============================================================================
+3. Usage                                                      *lens.nvim-usage*
+
+1. Select text in any visual mode (`v`, `V`, or `<C-v>`).
+2. Press `<leader>l` to pin the highlight.
+3. Move the cursor onto a highlight and press `<leader>l` to remove it.
+4. Press `<leader>L` to clear every highlight in every buffer.
+
+Attempting to pin the same selection twice is a no-op.
+
+===============================================================================
+4. Configuration                                      *lens.nvim-configuration*
+
+Pass options to `setup()`. All fields are optional.
+>lua
+  require('lens').setup({
+    -- Highlight group applied to pinned selections.
+    -- Defaults to 'LensHighlight', auto-created from your 'Visual' colors.
+    -- Set to an existing group name to take full control of appearance.
+    highlight_group = 'LensHighlight',
+
+    -- Appearance overrides — only used when highlight_group == 'LensHighlight'.
+    bg        = nil,   -- hex number, e.g. 0xff0000
+    fg        = nil,
+    bold      = false,
+    italic    = false,
+    underline = false,
+
+    -- Set to false to skip keymap registration (manage keys yourself).
+    setup_keymaps = true,
+    add_key       = '<leader>l',
+    remove_key    = '<leader>l',
+    clear_all_key = '<leader>L',
+  })
+<
+
+===============================================================================
+5. Keymaps                                                  *lens.nvim-keymaps*
+
+  Mode    Key            Action
+  ------  -------------  --------------------------------
+  Visual  `<leader>l`    Pin highlight to selection
+  Normal  `<leader>l`    Remove highlight under cursor
+  Normal  `<leader>L`    Clear all highlights
+
+===============================================================================
+6. API                                                          *lens.nvim-api*
+
+`lens.add_highlight({bufnr}, {start_line}, {start_col}, {end_line}, {end_col}, {key})`
+                                                         *lens.add_highlight()*
+    Pin a highlight programmatically. Lines and columns are 0-indexed;
+    {end_col} is exclusive.
+
+`lens.remove_highlight({key})`                        *lens.remove_highlight()*
+    Remove a highlight by its {key}.
+
+`lens.remove_highlight_at_cursor()`          *lens.remove_highlight_at_cursor()*
+    Remove the highlight that covers the current cursor position.
+
+`lens.clear_all()`                                          *lens.clear_all()*
+    Remove every highlight in every buffer.
+
+`lens.add_highlight_from_visual()`            *lens.add_highlight_from_visual()*
+    Pin a highlight from the current visual selection.
+    Exits visual mode on completion.
+
+===============================================================================
+vim:tw=78:ts=8:ft=help:norl:
