@@ -1,3 +1,6 @@
+# Generated helptags
+doc/tags
+
 # Compiled Lua sources
 luac.out
 
