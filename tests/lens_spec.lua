@@ -144,6 +144,34 @@ describe("lens.nvim", function()
   end)
 
   -- ───────────────────────────────────────────────
+  -- Select mode (mouse selection lands here when 'selectmode' enables it)
+  -- ───────────────────────────────────────────────
+  describe("select mode", function()
+    it("treats charwise select mode (s) like visual char (v)", function()
+      mock_visual_add("s", { 0, 1, 1, 0 }, { 0, 1, 5, 0 })
+      assert.equals(1, #get_marks())
+    end)
+
+    it("treats linewise select mode (S) like V-line", function()
+      mock_visual_add("S", { 0, 2, 1, 0 }, { 0, 2, 1, 0 })
+      local marks = get_marks()
+      assert.equals(1, #marks)
+      local details = marks[1][4]
+      assert.equals(11, details.end_col) -- "foo bar baz" length, no hl_eol
+      assert.is_not_true(details.hl_eol)
+    end)
+
+    it("treats blockwise select mode (^S) like visual block", function()
+      mock_visual_add("\19", { 0, 1, 1, 0 }, { 0, 3, 5, 0 })
+      local marks = get_marks()
+      assert.equals(3, #marks)
+      for _, m in ipairs(marks) do
+        assert.is_true(m[4].hl_eol)
+      end
+    end)
+  end)
+
+  -- ───────────────────────────────────────────────
   -- Multi-line character selection
   -- ───────────────────────────────────────────────
   describe("multi-line character selection", function()

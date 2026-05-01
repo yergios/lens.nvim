@@ -1,10 +1,12 @@
 # lens.nvim
 
 For those of you who do this to focus whenever you are reading text:
+
 ![Preview](https://i.imgur.com/dugfL83.gif)
 
 Now you get to do this:
-![Preview]()
+
+![Preview](https://i.imgur.com/TJdl1GW.gif)
 
 ## Getting started
 

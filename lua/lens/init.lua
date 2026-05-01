@@ -2,6 +2,10 @@
 local M = {}
 
 local VISUAL_BLOCK = "\22"
+local SELECT_BLOCK = "\19"
+-- Mouse selections (and any 'selectmode' mappings) can land in Select mode
+-- instead of Visual. Treat each select mode as its visual counterpart.
+local SELECT_TO_VISUAL = { s = "v", S = "V", [SELECT_BLOCK] = VISUAL_BLOCK }
 local namespace_id = vim.api.nvim_create_namespace("lens")
 local highlights = {}
 
@@ -33,6 +37,7 @@ end
 
 function M.add_highlight_from_visual()
   local mode = vim.fn.mode()
+  mode = SELECT_TO_VISUAL[mode] or mode
 
   if mode ~= "v" and mode ~= "V" and mode ~= VISUAL_BLOCK then
     vim.notify("Must be called from visual mode", vim.log.levels.WARN)
@@ -188,7 +193,7 @@ local function setup_keymaps()
     return
   end
   vim.keymap.set(
-    "x",
+    { "x", "s" },
     config.add_key,
     M.add_highlight_from_visual,
     { desc = "Add highlight to visual selection" }
@@ -213,7 +218,7 @@ M.keys = {
   {
     "<leader>l",
     M.add_highlight_from_visual,
-    mode = "x",
+    mode = { "x", "s" },
     desc = "Add highlight to visual selection",
   },
   { "<leader>l", M.remove_highlight_at_cursor, mode = "n", desc = "Remove highlight at cursor" },
