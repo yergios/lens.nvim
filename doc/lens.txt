@@ -14,9 +14,9 @@ Table of Contents                                          *lens.nvim-contents*
 ===============================================================================
 1. Introduction                                        *lens.nvim-introduction*
 
-Lens.nvim lets you pin highlights to any visual selection so you can track
-important lines and symbols while reading code. Highlights persist across
-cursor moves and survive mode changes until you explicitly remove them.
+Lens.nvim lets you pin highlights to any visual selection to help you focus
+when reading. Highlights persist across cursor moves and mode changes until
+you explicitly remove them.
 
 Supported selection types: charwise (`v`), linewise (`V`), block (`<C-v>`).
 Block selections (`<C-v>`) highlight each line from column 0 to the full visual

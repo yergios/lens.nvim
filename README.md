@@ -1,6 +1,10 @@
 # lens.nvim
 
-Lens.nvim lets you pin highlights to any visual selection so you can track important lines and symbols while reading code. Highlights persist across cursor moves and survive mode changes until you explicitly remove them.
+For those of you who do this to focus whenever you are reading text:
+![Preview](https://imgur.com/a/YaD71pv)
+
+Now you get to do this:
+![Preview]()
 
 ## Installation
 
@@ -64,11 +68,11 @@ require('lens').setup({
 
 ## Keymaps
 
-| Mode   | Key          | Action                          |
-|--------|--------------|---------------------------------|
-| Visual | `<leader>l`  | Pin highlight to selection      |
-| Normal | `<leader>l`  | Remove highlight under cursor   |
-| Normal | `<leader>L`  | Clear all highlights            |
+| Mode   | Key         | Action                        |
+| ------ | ----------- | ----------------------------- |
+| Visual | `<leader>l` | Pin highlight to selection    |
+| Normal | `<leader>l` | Remove highlight under cursor |
+| Normal | `<leader>L` | Clear all highlights          |
 
 ## API
 
