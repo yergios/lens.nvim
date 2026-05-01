@@ -197,8 +197,8 @@ describe("lens.nvim", function()
 
       assert.equals(#narrow, #wide)
       for i = 1, #narrow do
-        assert.equals(narrow[i][2], wide[i][2])           -- same start line
-        assert.equals(narrow[i][3], wide[i][3])           -- same start col (0)
+        assert.equals(narrow[i][2], wide[i][2]) -- same start line
+        assert.equals(narrow[i][3], wide[i][3]) -- same start col (0)
         assert.equals(narrow[i][4].end_row, wide[i][4].end_row)
         assert.equals(narrow[i][4].end_col, wide[i][4].end_col)
       end
@@ -208,7 +208,7 @@ describe("lens.nvim", function()
       mock_visual_add("\22", { 0, 2, 3, 0 }, { 0, 2, 7, 0 })
       local marks = get_marks()
       assert.equals(1, #marks)
-      assert.equals(0, marks[1][3])              -- start col 0
+      assert.equals(0, marks[1][3]) -- start col 0
       assert.equals(marks[1][2] + 1, marks[1][4].end_row)
       assert.equals(0, marks[1][4].end_col)
     end)
