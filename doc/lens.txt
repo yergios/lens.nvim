@@ -5,11 +5,12 @@
 Table of Contents                                          *lens.nvim-contents*
 
 1. Introduction                                        |lens.nvim-introduction|
-2. Installation                                        |lens.nvim-installation|
-3. Usage                                                      |lens.nvim-usage|
-4. Configuration                                      |lens.nvim-configuration|
-5. Keymaps                                                  |lens.nvim-keymaps|
-6. API                                                          |lens.nvim-api|
+2. Requirements                                        |lens.nvim-requirements|
+3. Installation                                        |lens.nvim-installation|
+4. Usage                                                      |lens.nvim-usage|
+5. Configuration                                      |lens.nvim-configuration|
+6. Keymaps                                                  |lens.nvim-keymaps|
+7. API                                                          |lens.nvim-api|
 
 ===============================================================================
 1. Introduction                                        *lens.nvim-introduction*
@@ -19,11 +20,20 @@ when reading. Highlights persist across cursor moves and mode changes until
 you explicitly remove them.
 
 Supported selection types: charwise (`v`), linewise (`V`), block (`<C-v>`).
-Block selections (`<C-v>`) highlight each line from column 0 to the full visual
-width of the window, ignoring the block's column bounds.
+
+Selection-mode behavior:
+  - `v`     — highlights exactly the selected range.
+  - `V`     — highlights each line from column 0 to its last character.
+  - `<C-v>` — highlights each line from column 0 to the full visual width of
+              the window, ignoring the block's column bounds.
 
 ===============================================================================
-2. Installation                                        *lens.nvim-installation*
+2. Requirements                                        *lens.nvim-requirements*
+
+- Neovim >= v0.9
+
+===============================================================================
+3. Installation                                        *lens.nvim-installation*
 
 LAZY.NVIM ~
 >lua
@@ -45,17 +55,15 @@ LAZYVIM — use the built-in keymap spec to skip manual keymap setup: ~
 <
 
 ===============================================================================
-3. Usage                                                      *lens.nvim-usage*
+4. Usage                                                      *lens.nvim-usage*
 
 1. Select text in any visual mode (`v`, `V`, or `<C-v>`).
 2. Press `<leader>l` to pin the highlight.
 3. Move the cursor onto a highlight and press `<leader>l` to remove it.
 4. Press `<leader>L` to clear every highlight in every buffer.
 
-Attempting to pin the same selection twice is a no-op.
-
 ===============================================================================
-4. Configuration                                      *lens.nvim-configuration*
+5. Configuration                                      *lens.nvim-configuration*
 
 Pass options to `setup()`. All fields are optional.
 >lua
@@ -81,7 +89,7 @@ Pass options to `setup()`. All fields are optional.
 <
 
 ===============================================================================
-5. Keymaps                                                  *lens.nvim-keymaps*
+6. Keymaps                                                  *lens.nvim-keymaps*
 
   Mode    Key            Action
   ------  -------------  --------------------------------
@@ -90,12 +98,15 @@ Pass options to `setup()`. All fields are optional.
   Normal  `<leader>L`    Clear all highlights
 
 ===============================================================================
-6. API                                                          *lens.nvim-api*
+7. API                                                          *lens.nvim-api*
 
-`lens.add_highlight({bufnr}, {start_line}, {start_col}, {end_line}, {end_col}, {key})`
+`lens.add_highlight({bufnr}, {start_line}, {start_col}, {end_line}, {end_col}, {key}, {fill_eol})`
                                                          *lens.add_highlight()*
     Pin a highlight programmatically. Lines and columns are 0-indexed;
     {end_col} is exclusive.
+    {fill_eol} (optional, default true): when {end_col} is -1, true fills the
+    buffer width past the line text; false stops at the last character of
+    each line.
 
 `lens.remove_highlight({key})`                        *lens.remove_highlight()*
     Remove a highlight by its {key}.

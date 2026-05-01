@@ -6,7 +6,13 @@ For those of you who do this to focus whenever you are reading text:
 Now you get to do this:
 ![Preview]()
 
-## Installation
+## Getting started
+
+### Requirements
+
+- Neovim >= v0.9
+
+### Installation
 
 **lazy.nvim**
 
@@ -36,9 +42,11 @@ Now you get to do this:
 3. Move the cursor onto a highlight and press `<leader>l` to remove it.
 4. Press `<leader>L` to clear every highlight in every buffer.
 
-Attempting to pin the same selection twice is a no-op.
+**Selection-mode behavior:**
 
-> **Block mode note:** `<C-v>` selections highlight each line from column 0 to the full visual width of the window, ignoring the block's column bounds. Use `v` for column-precise ranges.
+- `v` (charwise) — highlights exactly the selected range.
+- `V` (linewise) — highlights each line from column 0 to its last character.
+- `<C-v>` (block) — highlights each line from column 0 to the full visual width of the window, ignoring the block's column bounds. Use `v` for column-precise ranges.
 
 ## Configuration
 
@@ -80,7 +88,9 @@ require('lens').setup({
 local lens = require('lens')
 
 -- Pin a highlight programmatically (0-indexed lines, 0-indexed cols, end_col exclusive).
-lens.add_highlight(bufnr, start_line, start_col, end_line, end_col, key)
+-- fill_eol (optional, default true): when end_col is -1, true fills the buffer width
+-- past the line text; false stops at the last character of each line.
+lens.add_highlight(bufnr, start_line, start_col, end_line, end_col, key, fill_eol)
 
 -- Remove a highlight by the key returned above.
 lens.remove_highlight(key)
