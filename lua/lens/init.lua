@@ -63,13 +63,16 @@ function M.add_highlight_from_visual()
     end_col = end_pos[3]
   end
 
+  -- V-line stops at the actual line text; visual block fills the buffer width.
+  local fill_eol = mode ~= "V"
+
   local key =
     string.format("%d:%s:%d:%d:%d:%d", bufnr, mode, start_line, start_col, end_line, end_col)
 
   if highlights[key] then
     vim.notify("Selection already highlighted", vim.log.levels.INFO)
   else
-    M.add_highlight(bufnr, start_line, start_col, end_line, end_col, key)
+    M.add_highlight(bufnr, start_line, start_col, end_line, end_col, key, fill_eol)
     vim.notify("Highlight added", vim.log.levels.INFO)
   end
 
@@ -107,7 +110,10 @@ function M.remove_highlight_at_cursor()
   vim.notify("No highlight found at cursor", vim.log.levels.WARN)
 end
 
-function M.add_highlight(bufnr, start_line, start_col, end_line, end_col, key)
+function M.add_highlight(bufnr, start_line, start_col, end_line, end_col, key, fill_eol)
+  if fill_eol == nil then
+    fill_eol = true
+  end
   local ids = {}
 
   -- nvim_buf_set_extmark returns the actual extmark id (unlike nvim_buf_add_highlight,
@@ -115,11 +121,18 @@ function M.add_highlight(bufnr, start_line, start_col, end_line, end_col, key)
   local function add(line, sc, ec)
     local opts = { hl_group = config.highlight_group }
     if ec == -1 then
-      -- Highlight to end of line: range [line, sc] → [line+1, 0].
-      -- hl_eol fills the visual line to the window edge past the last character.
-      opts.end_line = line + 1
-      opts.end_col = 0
-      opts.hl_eol = true
+      if fill_eol then
+        -- Highlight to end of line: range [line, sc] → [line+1, 0].
+        -- hl_eol fills the visual line to the window edge past the last character.
+        opts.end_line = line + 1
+        opts.end_col = 0
+        opts.hl_eol = true
+      else
+        -- Stop at the actual line length so the highlight does not extend past text.
+        local lines = vim.api.nvim_buf_get_lines(bufnr, line, line + 1, false)
+        opts.end_line = line
+        opts.end_col = lines[1] and #lines[1] or 0
+      end
     else
       opts.end_line = line
       opts.end_col = ec

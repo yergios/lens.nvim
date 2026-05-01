@@ -116,6 +116,31 @@ describe("lens.nvim", function()
       mock_visual_add("V", { 0, 1, 1, 0 }, { 0, 3, 1, 0 })
       assert.equals(3, #get_marks())
     end)
+
+    it("highlights only actual line characters, not the buffer width", function()
+      -- "foo bar baz" is 11 chars; highlight should end at col 11 with no hl_eol fill.
+      mock_visual_add("V", { 0, 2, 1, 0 }, { 0, 2, 1, 0 })
+      local marks = get_marks()
+      assert.equals(1, #marks)
+      local details = marks[1][4]
+      assert.equals(marks[1][2], details.end_row) -- same line, not next line
+      assert.equals(11, details.end_col)
+      assert.is_not_true(details.hl_eol)
+    end)
+
+    it("each line in a multi-line V selection ends at its own text length", function()
+      -- Lines 0–2: "Hello world" (11), "foo bar baz" (11), "line three" (10)
+      mock_visual_add("V", { 0, 1, 1, 0 }, { 0, 3, 1, 0 })
+      local marks = get_marks()
+      assert.equals(3, #marks)
+      local lengths = { 11, 11, 10 }
+      for i, m in ipairs(marks) do
+        local details = m[4]
+        assert.equals(m[2], details.end_row)
+        assert.equals(lengths[i], details.end_col)
+        assert.is_not_true(details.hl_eol)
+      end
+    end)
   end)
 
   -- ───────────────────────────────────────────────
