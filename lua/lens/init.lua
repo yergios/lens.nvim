@@ -49,10 +49,7 @@ function M.add_highlight_from_visual()
   local bufnr = vim.api.nvim_get_current_buf()
 
   -- Ensure start comes before end
-  if
-    start_pos[2] > end_pos[2]
-    or (start_pos[2] == end_pos[2] and start_pos[3] > end_pos[3])
-  then
+  if start_pos[2] > end_pos[2] or (start_pos[2] == end_pos[2] and start_pos[3] > end_pos[3]) then
     start_pos, end_pos = end_pos, start_pos
   end
 
@@ -71,36 +68,17 @@ function M.add_highlight_from_visual()
   -- V-line stops at the actual line text; visual block fills the buffer width.
   local fill_eol = mode ~= "V"
 
-  local key = string.format(
-    "%d:%s:%d:%d:%d:%d",
-    bufnr,
-    mode,
-    start_line,
-    start_col,
-    end_line,
-    end_col
-  )
+  local key =
+    string.format("%d:%s:%d:%d:%d:%d", bufnr, mode, start_line, start_col, end_line, end_col)
 
   if highlights[key] then
     vim.notify("Selection already highlighted", vim.log.levels.INFO)
   else
-    M.add_highlight(
-      bufnr,
-      start_line,
-      start_col,
-      end_line,
-      end_col,
-      key,
-      fill_eol
-    )
+    M.add_highlight(bufnr, start_line, start_col, end_line, end_col, key, fill_eol)
     vim.notify("Highlight added", vim.log.levels.INFO)
   end
 
-  vim.api.nvim_feedkeys(
-    vim.api.nvim_replace_termcodes("<Esc>", true, false, true),
-    "n",
-    false
-  )
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
 end
 
 function M.remove_highlight_at_cursor()
@@ -110,16 +88,11 @@ function M.remove_highlight_at_cursor()
   local cur_col = cursor[2]
 
   for key, hl in pairs(highlights) do
-    if
-      hl.bufnr == bufnr
-      and cur_line >= hl.start_line
-      and cur_line <= hl.end_line
-    then
+    if hl.bufnr == bufnr and cur_line >= hl.start_line and cur_line <= hl.end_line then
       local in_range
 
       if hl.start_line == hl.end_line then
-        in_range = hl.end_col == -1
-          or (cur_col >= hl.start_col and cur_col < hl.end_col)
+        in_range = hl.end_col == -1 or (cur_col >= hl.start_col and cur_col < hl.end_col)
       elseif cur_line == hl.start_line then
         in_range = cur_col >= hl.start_col
       elseif cur_line == hl.end_line then
@@ -139,15 +112,7 @@ function M.remove_highlight_at_cursor()
   vim.notify("No highlight found at cursor", vim.log.levels.WARN)
 end
 
-function M.add_highlight(
-  bufnr,
-  start_line,
-  start_col,
-  end_line,
-  end_col,
-  key,
-  fill_eol
-)
+function M.add_highlight(bufnr, start_line, start_col, end_line, end_col, key, fill_eol)
   if fill_eol == nil then
     fill_eol = true
   end
@@ -174,8 +139,7 @@ function M.add_highlight(
       opts.end_line = line
       opts.end_col = ec
     end
-    ids[#ids + 1] =
-      vim.api.nvim_buf_set_extmark(bufnr, namespace_id, line, sc, opts)
+    ids[#ids + 1] = vim.api.nvim_buf_set_extmark(bufnr, namespace_id, line, sc, opts)
   end
 
   if start_line == end_line then
@@ -237,12 +201,7 @@ local function setup_keymaps()
     M.remove_highlight_at_cursor,
     { desc = "Remove highlight at cursor" }
   )
-  vim.keymap.set(
-    "n",
-    config.clear_all_key,
-    M.clear_all,
-    { desc = "Clear all highlights" }
-  )
+  vim.keymap.set("n", config.clear_all_key, M.clear_all, { desc = "Clear all highlights" })
 end
 
 function M.setup(opts)
@@ -272,10 +231,7 @@ setup_hl() -- create highlight group at load; keymaps wait for M.setup()
 
 -- Referesh LensHighlight on colorscheme change and drop cached entries for buffers that get wiped so highlights{} doesn't grow
 local augroup = vim.api.nvim_create_augroup("Lens", { clear = true })
-vim.api.nvim_create_autocmd(
-  "ColorScheme",
-  { group = augroup, callback = setup_hl }
-)
+vim.api.nvim_create_autocmd("ColorScheme", { group = augroup, callback = setup_hl })
 vim.api.nvim_create_autocmd("BufWipeout", {
   group = augroup,
   callback = function(args)
