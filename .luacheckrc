@@ -10,7 +10,6 @@ globals = {
 }
 
 read_globals = {
-  "a",
   "assert",
   "describe",
   "it",
