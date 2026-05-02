@@ -526,6 +526,107 @@ describe("lens.nvim", function()
   end)
 
   -- ───────────────────────────────────────────────
+  -- Re-running setup() reconfigures keymaps cleanly
+  -- ───────────────────────────────────────────────
+  describe("setup re-run", function()
+    local function key_exists(mode, lhs)
+      for _, m in ipairs(vim.api.nvim_get_keymap(mode)) do
+        if m.lhs == lhs then
+          return true
+        end
+      end
+      return false
+    end
+
+    it("releases previously bound keys when re-configured", function()
+      lens.setup({ setup_keymaps = true, add_key = "gxa" })
+      assert.is_true(key_exists("x", "gxa"))
+      lens.setup({ setup_keymaps = true, add_key = "gxb" })
+      assert.is_false(key_exists("x", "gxa")) -- old key released
+      assert.is_true(key_exists("x", "gxb")) -- new key bound
+      lens.setup({ setup_keymaps = false }) -- cleanup so other tests are unaffected
+      assert.is_false(key_exists("x", "gxb"))
+    end)
+  end)
+
+  -- ───────────────────────────────────────────────
+  -- Notification verbosity (silent flag, clear_all-when-empty)
+  -- ───────────────────────────────────────────────
+  describe("notification verbosity", function()
+    it("suppresses INFO when silent=true", function()
+      lens.setup({ setup_keymaps = false, silent = true })
+      local infos = 0
+      local orig = vim.notify
+      vim.notify = function(_, level)
+        if level == vim.log.levels.INFO then
+          infos = infos + 1
+        end
+      end
+      mock_visual_add("v", { 0, 1, 1, 0 }, { 0, 1, 5, 0 })
+      vim.notify = orig
+      assert.equals(0, infos)
+      lens.setup({ setup_keymaps = false, silent = false }) -- restore default
+    end)
+
+    it("still emits WARN even when silent=true", function()
+      lens.setup({ setup_keymaps = false, silent = true })
+      local warned = capture_warn(function()
+        lens.add_highlight_from_visual() -- not in visual mode → WARN
+      end)
+      assert.is_true(warned)
+      lens.setup({ setup_keymaps = false, silent = false })
+    end)
+
+    it("clear_all does not notify when there are no highlights", function()
+      local notified = false
+      local orig = vim.notify
+      vim.notify = function()
+        notified = true
+      end
+      lens.clear_all()
+      vim.notify = orig
+      assert.is_false(notified)
+    end)
+  end)
+
+  -- ───────────────────────────────────────────────
+  -- Public add_highlight input validation
+  -- ───────────────────────────────────────────────
+  describe("add_highlight validation", function()
+    it("silently drops calls with an invalid bufnr", function()
+      assert.has_no.errors(function()
+        lens.add_highlight(99999, 0, 0, 0, 5, "bogus")
+      end)
+    end)
+  end)
+
+  -- ───────────────────────────────────────────────
+  -- Dedup key — mode-distinct + slim for V/^V
+  -- ───────────────────────────────────────────────
+  describe("dedup keying", function()
+    it("treats v and V selections of the same line as distinct", function()
+      -- Different visual modes carry different intent; both can be pinned.
+      mock_visual_add("v", { 0, 1, 1, 0 }, { 0, 1, 11, 0 }) -- "Hello world" via v
+      mock_visual_add("V", { 0, 1, 1, 0 }, { 0, 1, 1, 0 }) -- entire line via V
+      -- v: 1 mark; V: 1 mark → 2 total
+      assert.equals(2, #get_marks())
+    end)
+
+    it("dedups two V-line selections on the same line range", function()
+      mock_visual_add("V", { 0, 1, 1, 0 }, { 0, 2, 1, 0 })
+      mock_visual_add("V", { 0, 1, 5, 0 }, { 0, 2, 99, 0 }) -- different cols, same lines
+      -- V key omits cols, so these collide → only one set of marks
+      assert.equals(2, #get_marks())
+    end)
+
+    it("dedups two block selections on the same line range regardless of cols", function()
+      mock_visual_add("\22", { 0, 1, 1, 0 }, { 0, 3, 5, 0 })
+      mock_visual_add("\22", { 0, 1, 9, 0 }, { 0, 3, 13, 0 }) -- wider block, same lines
+      assert.equals(3, #get_marks())
+    end)
+  end)
+
+  -- ───────────────────────────────────────────────
   -- Autocmd: refresh highlight group on colorscheme change
   -- ───────────────────────────────────────────────
   describe("ColorScheme autocmd", function()

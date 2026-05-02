@@ -17,7 +17,15 @@ local config = {
   add_key = "<leader>l",
   remove_key = "<leader>l",
   clear_all_key = "<leader>L",
+  silent = false, -- when true, suppress INFO-level notifications
 }
+
+local function notify(msg, level)
+  if config.silent and level == vim.log.levels.INFO then
+    return
+  end
+  vim.notify(msg, level)
+end
 
 -- Only auto-creates the group when using the default name.
 -- If the user sets a custom highlight_group, they are responsible for defining it.
@@ -40,7 +48,7 @@ function M.add_highlight_from_visual()
   mode = SELECT_TO_VISUAL[mode] or mode
 
   if mode ~= "v" and mode ~= "V" and mode ~= VISUAL_BLOCK then
-    vim.notify("Must be called from visual mode", vim.log.levels.WARN)
+    notify("Must be called from visual mode", vim.log.levels.WARN)
     return
   end
 
@@ -49,7 +57,10 @@ function M.add_highlight_from_visual()
   local bufnr = vim.api.nvim_get_current_buf()
 
   -- Ensure start comes before end
-  if start_pos[2] > end_pos[2] or (start_pos[2] == end_pos[2] and start_pos[3] > end_pos[3]) then
+  if
+    start_pos[2] > end_pos[2]
+    or (start_pos[2] == end_pos[2] and start_pos[3] > end_pos[3])
+  then
     start_pos, end_pos = end_pos, start_pos
   end
 
@@ -68,17 +79,45 @@ function M.add_highlight_from_visual()
   -- V-line stops at the actual line text; visual block fills the buffer width.
   local fill_eol = mode ~= "V"
 
-  local key =
-    string.format("%d:%s:%d:%d:%d:%d", bufnr, mode, start_line, start_col, end_line, end_col)
-
-  if highlights[key] then
-    vim.notify("Selection already highlighted", vim.log.levels.INFO)
+  -- Mode is part of the key by design: a `v` selection (col 0 to last char) and
+  -- a `V` selection of the same line express different intent and remain distinct.
+  -- For V-line and block mode, start_col/end_col are constants (0 / -1) so we
+  -- omit them; for v-mode the columns identify the selection.
+  local key
+  if mode == "V" or mode == VISUAL_BLOCK then
+    key = string.format("%d:%s:%d:%d", bufnr, mode, start_line, end_line)
   else
-    M.add_highlight(bufnr, start_line, start_col, end_line, end_col, key, fill_eol)
-    vim.notify("Highlight added", vim.log.levels.INFO)
+    key = string.format(
+      "%d:%s:%d:%d:%d:%d",
+      bufnr,
+      mode,
+      start_line,
+      start_col,
+      end_line,
+      end_col
+    )
   end
 
-  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
+  if highlights[key] then
+    notify("Selection already highlighted", vim.log.levels.INFO)
+  else
+    M.add_highlight(
+      bufnr,
+      start_line,
+      start_col,
+      end_line,
+      end_col,
+      key,
+      fill_eol
+    )
+    notify("Highlight added", vim.log.levels.INFO)
+  end
+
+  vim.api.nvim_feedkeys(
+    vim.api.nvim_replace_termcodes("<Esc>", true, false, true),
+    "n",
+    false
+  )
 end
 
 function M.remove_highlight_at_cursor()
@@ -88,11 +127,16 @@ function M.remove_highlight_at_cursor()
   local cur_col = cursor[2]
 
   for key, hl in pairs(highlights) do
-    if hl.bufnr == bufnr and cur_line >= hl.start_line and cur_line <= hl.end_line then
+    if
+      hl.bufnr == bufnr
+      and cur_line >= hl.start_line
+      and cur_line <= hl.end_line
+    then
       local in_range
 
       if hl.start_line == hl.end_line then
-        in_range = hl.end_col == -1 or (cur_col >= hl.start_col and cur_col < hl.end_col)
+        in_range = hl.end_col == -1
+          or (cur_col >= hl.start_col and cur_col < hl.end_col)
       elseif cur_line == hl.start_line then
         in_range = cur_col >= hl.start_col
       elseif cur_line == hl.end_line then
@@ -103,16 +147,27 @@ function M.remove_highlight_at_cursor()
 
       if in_range then
         M.remove_highlight(key)
-        vim.notify("Highlight removed", vim.log.levels.INFO)
+        notify("Highlight removed", vim.log.levels.INFO)
         return
       end
     end
   end
 
-  vim.notify("No highlight found at cursor", vim.log.levels.WARN)
+  notify("No highlight found at cursor", vim.log.levels.WARN)
 end
 
-function M.add_highlight(bufnr, start_line, start_col, end_line, end_col, key, fill_eol)
+function M.add_highlight(
+  bufnr,
+  start_line,
+  start_col,
+  end_line,
+  end_col,
+  key,
+  fill_eol
+)
+  if not vim.api.nvim_buf_is_valid(bufnr) then
+    return -- silently drop; the caller handed us a stale bufnr
+  end
   if fill_eol == nil then
     fill_eol = true
   end
@@ -139,7 +194,8 @@ function M.add_highlight(bufnr, start_line, start_col, end_line, end_col, key, f
       opts.end_line = line
       opts.end_col = ec
     end
-    ids[#ids + 1] = vim.api.nvim_buf_set_extmark(bufnr, namespace_id, line, sc, opts)
+    ids[#ids + 1] =
+      vim.api.nvim_buf_set_extmark(bufnr, namespace_id, line, sc, opts)
   end
 
   if start_line == end_line then
@@ -174,6 +230,9 @@ function M.remove_highlight(key)
 end
 
 function M.clear_all()
+  if next(highlights) == nil then
+    return -- nothing to do; stay silent so accidental presses don't notify
+  end
   local seen = {}
   for _, hl in pairs(highlights) do
     if not seen[hl.bufnr] and vim.api.nvim_buf_is_valid(hl.bufnr) then
@@ -182,26 +241,44 @@ function M.clear_all()
     end
   end
   highlights = {}
-  vim.notify("All highlights cleared", vim.log.levels.INFO)
+  notify("All highlights cleared", vim.log.levels.INFO)
+end
+
+-- Tracks keys we've bound so a second setup() call can release them before
+-- registering new ones. Otherwise reconfiguring add_key would leave both old
+-- and new keys bound.
+local registered_keys = {}
+
+local function unbind_keymaps()
+  for _, item in ipairs(registered_keys) do
+    pcall(vim.keymap.del, item.modes, item.lhs)
+  end
+  registered_keys = {}
+end
+
+local function bind(modes, lhs, rhs, desc)
+  vim.keymap.set(modes, lhs, rhs, { desc = desc })
+  registered_keys[#registered_keys + 1] = { modes = modes, lhs = lhs }
 end
 
 local function setup_keymaps()
+  unbind_keymaps()
   if not config.setup_keymaps then
     return
   end
-  vim.keymap.set(
+  bind(
     { "x", "s" },
     config.add_key,
     M.add_highlight_from_visual,
-    { desc = "Add highlight to visual selection" }
+    "Add highlight to visual selection"
   )
-  vim.keymap.set(
+  bind(
     "n",
     config.remove_key,
     M.remove_highlight_at_cursor,
-    { desc = "Remove highlight at cursor" }
+    "Remove highlight at cursor"
   )
-  vim.keymap.set("n", config.clear_all_key, M.clear_all, { desc = "Clear all highlights" })
+  bind("n", config.clear_all_key, M.clear_all, "Clear all highlights")
 end
 
 function M.setup(opts)
@@ -231,7 +308,10 @@ setup_hl() -- create highlight group at load; keymaps wait for M.setup()
 
 -- Referesh LensHighlight on colorscheme change and drop cached entries for buffers that get wiped so highlights{} doesn't grow
 local augroup = vim.api.nvim_create_augroup("Lens", { clear = true })
-vim.api.nvim_create_autocmd("ColorScheme", { group = augroup, callback = setup_hl })
+vim.api.nvim_create_autocmd(
+  "ColorScheme",
+  { group = augroup, callback = setup_hl }
+)
 vim.api.nvim_create_autocmd("BufWipeout", {
   group = augroup,
   callback = function(args)
