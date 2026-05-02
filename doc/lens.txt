@@ -48,14 +48,6 @@ LAZY.NVIM ~
   }
 <
 
-LAZYVIM — use the built-in keymap spec to skip manual keymap setup: ~
->lua
-  {
-    'yergios/lens.nvim',
-    keys = require('lens').keys,
-  }
-<
-
 ===============================================================================
 4. Usage                                                      *lens.nvim-usage*
 

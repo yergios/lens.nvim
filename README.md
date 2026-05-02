@@ -28,15 +28,6 @@ Now you get to do this:
 }
 ```
 
-**LazyVim** — use the built-in keymap spec to skip manual keymap setup:
-
-```lua
-{
-  'yergios/lens.nvim',
-  keys = require('lens').keys,
-}
-```
-
 ## Usage
 
 1. Select text in any visual mode (`v`, `V`, or `<C-v>`).
