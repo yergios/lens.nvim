@@ -73,16 +73,20 @@ require('lens').setup({
   add_key       = '<leader>l',
   remove_key    = '<leader>l',
   clear_all_key = '<leader>L',
+
+  -- When true, suppress INFO-level notifications (duplicate, added, cleared).
+  -- WARN-level notifications (e.g. called outside visual mode) are always shown.
+  silent = false,
 })
 ```
 
 ## Keymaps
 
-| Mode   | Key         | Action                        |
-| ------ | ----------- | ----------------------------- |
-| Visual | `<leader>l` | Pin highlight to selection    |
-| Normal | `<leader>l` | Remove highlight under cursor |
-| Normal | `<leader>L` | Clear all highlights          |
+| Mode          | Key         | Action                        |
+| ------------- | ----------- | ----------------------------- |
+| Visual/Select | `<leader>l` | Pin highlight to selection    |
+| Normal        | `<leader>l` | Remove highlight under cursor |
+| Normal        | `<leader>L` | Clear all highlights          |
 
 ## API
 
@@ -96,6 +100,9 @@ lens.add_highlight(bufnr, start_line, start_col, end_line, end_col, key, fill_eo
 
 -- Remove a highlight by the key returned above.
 lens.remove_highlight(key)
+
+-- Pin a highlight from the current visual or select selection. Exits visual mode on completion.
+lens.add_highlight_from_visual()
 
 -- Remove the highlight that covers the current cursor position.
 lens.remove_highlight_at_cursor()

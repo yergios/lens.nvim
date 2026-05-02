@@ -20,6 +20,8 @@ when reading. Highlights persist across cursor moves and mode changes until
 you explicitly remove them.
 
 Supported selection types: charwise (`v`), linewise (`V`), block (`<C-v>`).
+Mouse selections and any `selectmode` mappings land in Select mode; lens treats
+each Select mode as its Visual counterpart (`s` → `v`, `S` → `V`, `^S` → `^V`).
 
 Selection-mode behavior:
   - `v`     — highlights exactly the selected range.
@@ -85,17 +87,21 @@ Pass options to `setup()`. All fields are optional.
     add_key       = '<leader>l',
     remove_key    = '<leader>l',
     clear_all_key = '<leader>L',
+
+    -- When true, suppress INFO-level notifications (duplicate, added, cleared).
+    -- WARN-level notifications are always shown.
+    silent = false,
   })
 <
 
 ===============================================================================
 6. Keymaps                                                  *lens.nvim-keymaps*
 
-  Mode    Key            Action
-  ------  -------------  --------------------------------
-  Visual  `<leader>l`    Pin highlight to selection
-  Normal  `<leader>l`    Remove highlight under cursor
-  Normal  `<leader>L`    Clear all highlights
+  Mode            Key            Action
+  --------------  -------------  --------------------------------
+  Visual/Select   `<leader>l`    Pin highlight to selection
+  Normal          `<leader>l`    Remove highlight under cursor
+  Normal          `<leader>L`    Clear all highlights
 
 ===============================================================================
 7. API                                                          *lens.nvim-api*
