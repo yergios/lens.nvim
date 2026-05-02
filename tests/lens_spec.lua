@@ -483,6 +483,16 @@ describe("lens.nvim", function()
       assert.equals(1, #get_marks())
     end)
 
+    it("clamps end_col when mouse selection places caret past the last character", function()
+      -- "Hello world" is 11 chars; a mouse selection can produce end col 12 (1-based),
+      -- which becomes end_col=12 — one past the last valid byte. nvim_buf_set_extmark
+      -- rejects out-of-range columns, so add_highlight must clamp silently.
+      assert.has_no.errors(function()
+        lens.add_highlight(bufnr, 0, 0, 0, 12, "clamp_key")
+      end)
+      assert.equals(1, #get_marks())
+    end)
+
     it("handles a V-line selection of the whole buffer", function()
       mock_visual_add("V", { 0, 1, 1, 0 }, { 0, 4, 1, 0 })
       assert.equals(4, #get_marks())

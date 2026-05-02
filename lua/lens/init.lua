@@ -191,8 +191,12 @@ function M.add_highlight(
         opts.end_col = lines[1] and #lines[1] or 0
       end
     else
+      -- Clamp to the actual line length; a mouse selection can place the caret
+      -- one past the last valid character, which nvim_buf_set_extmark rejects.
+      local lines = vim.api.nvim_buf_get_lines(bufnr, line, line + 1, false)
+      local line_len = lines[1] and #lines[1] or 0
       opts.end_line = line
-      opts.end_col = ec
+      opts.end_col = math.min(ec, line_len)
     end
     ids[#ids + 1] =
       vim.api.nvim_buf_set_extmark(bufnr, namespace_id, line, sc, opts)
