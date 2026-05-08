@@ -33,9 +33,10 @@ local function setup_hl()
   if config.highlight_group ~= "LensHighlight" then
     return
   end
+  local folded = vim.api.nvim_get_hl(0, { name = "Folded", link = false })
   local visual = vim.api.nvim_get_hl(0, { name = "Visual", link = false })
   vim.api.nvim_set_hl(0, "LensHighlight", {
-    bg = config.bg or visual.bg or 0x3e4451,
+    bg = config.bg or folded.bg or visual.bg or 0x3e4451,
     fg = config.fg,
     bold = config.bold,
     italic = config.italic,

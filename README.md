@@ -48,7 +48,8 @@ Pass options to `setup()`. All fields are optional.
 ```lua
 require('lens').setup({
   -- Highlight group applied to pinned selections.
-  -- Defaults to 'LensHighlight', which is auto-created from your 'Visual' colors.
+  -- Defaults to 'LensHighlight', which is auto-created from your 'Folded' colors
+  -- (falling back to 'Visual' if 'Folded' has no background).
   -- Set this to an existing group name to take full control of appearance.
   highlight_group = 'LensHighlight',
 
